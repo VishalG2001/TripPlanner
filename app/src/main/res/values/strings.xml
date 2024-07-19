@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">recyclerViewApp</string>
+    <string name="fab_Description">Create new Trip info</string>
+    <string name="rv_from">From -</string>
+    <string name="rv_to">To -</string>
+    <string name="newTrip_from">From ?</string>
+    <string name="newTrip_to">To ?</string>
+    <string name="distance">Distance ?</string>
+    <string name="time">Time ?</string>
+    <string name="date">Date ?</string>
+    <string name="stations">stations ?</string>
+    <string name="enter_destination">Enter Destination</string>
+    <string name="enter_distance_in_kms">Enter distance in KMs</string>
+    <string name="enter_time_of_travel">Enter time of travel</string>
+    <string name="enter_halting_stations">Enter halting Stations</string>
+    <string name="submit">Submit</string>
+    <string name="enter_date">Enter Date</string>
+    <string name="enter_starting_location">Enter Starting Location</string>
+    <string name="enter_distance">Enter Distance</string>
+    <string name="enter_journey_date">Enter Journey Date</string>
+    <string name="enter_time">Enter Time</string>
+</resources>
