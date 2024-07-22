@@ -19,6 +19,7 @@ class CreateTripActivity : AppCompatActivity() {
     private var selectedYear = -1
     private var selectedMonth = -1
     private var selectedDay = -1
+    var currpos =0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -11,6 +11,8 @@ appcompat = "1.6.1"
 material = "1.10.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
+realmGradlePlugin = "10.17.0"
+realmGradlePluginVersion = "10.11.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -23,6 +25,10 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material-v130alpha03 = { module = "com.google.android.material:material", version.ref = "googleMaterialVersion" }
 material-v140 = { module = "com.google.android.material:material", version.ref = "googleMaterial" }
+realm-android-library = { module = "io.realm:realm-android-library", version.ref = "realmGradlePluginVersion" }
+realm-annotations-processor = { module = "io.realm:realm-annotations-processor", version.ref = "realmGradlePlugin" }
+realm-gradle-plugin = { module = "io.realm:realm-gradle-plugin", version.ref = "realmGradlePlugin" }
+xio-realm-gradle-plugin = { module = "io.realm:realm-gradle-plugin", version.ref = "realmGradlePluginVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
