@@ -50,6 +50,9 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation (libs.realm.android.library)
     implementation(libs.androidx.constraintlayout)
+    implementation (libs.kotlinx.coroutines.core)
+    implementation (libs.kotlinx.coroutines.android)
+
     kapt (libs.realm.annotations.processor)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

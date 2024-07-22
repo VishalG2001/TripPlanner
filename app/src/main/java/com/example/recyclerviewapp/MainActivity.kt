@@ -2,6 +2,7 @@ package com.example.recyclerviewapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -11,15 +12,18 @@ import com.example.recyclerviewapp.databinding.ActivityMainBinding
 import com.example.recyclerviewapp.realmdb.RealmTrips
 import io.realm.Realm
 import io.realm.RealmResults
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
-
 class MainActivity : AppCompatActivity(), RVAdapter.OnTripItemClickListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var tripAdapter: RVAdapter
     private lateinit var tripList: RealmResults<RealmTrips>
     private lateinit var realm: Realm
-    var currentPosition = -1
+    private var currentPosition = -1
 
     private val addTripResultLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -34,11 +38,9 @@ class MainActivity : AppCompatActivity(), RVAdapter.OnTripItemClickListener {
                 val stations = data.getStringExtra("stations") ?: ""
                 val status = TripStatus.valueOf(data.getStringExtra("status") ?: TripStatus.SUCCESSFUL.name)
 
-                if (currentPosition == -1) {
-                    // Add new trip to Realm
-                    realm.executeTransaction {
-                        val newTrip = realm.createObject(RealmTrips::class.java)
-//                        val idd = UUID.randomUUID()
+                realm.executeTransaction {
+                    if (currentPosition == -1) {
+                        val newTrip = realm.createObject(RealmTrips::class.java, UUID.randomUUID().toString())
                         newTrip.from = from
                         newTrip.to = to
                         newTrip.distance = distance
@@ -46,20 +48,22 @@ class MainActivity : AppCompatActivity(), RVAdapter.OnTripItemClickListener {
                         newTrip.date = date
                         newTrip.stations = stations
                         newTrip.status = status.name
-                    }
-                } else {
-                    // Update existing trip in Realm
-                    realm.executeTransaction {
+                        tripAdapter.notifyItemInserted(tripList.size -1)
+                    } else {
                         val tripToUpdate = tripList[currentPosition]
-                        tripToUpdate?.from = from
-                        tripToUpdate?.to = to
-                        tripToUpdate?.distance = distance
-                        tripToUpdate?.duration = duration
-                        tripToUpdate?.date = date
-                        tripToUpdate?.stations = stations
-                        tripToUpdate?.status = status.name
+                        tripToUpdate?.apply {
+                            this.from = from
+                            this.to = to
+                            this.distance = distance
+                            this.duration = duration
+                            this.date = date
+                            this.stations = stations
+                            this.status = status.name
+                            tripAdapter.notifyItemChanged(currentPosition)
+                        }
                     }
                     currentPosition = -1
+                    Toast.makeText(this, "${realm.isEmpty}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -73,9 +77,7 @@ class MainActivity : AppCompatActivity(), RVAdapter.OnTripItemClickListener {
         Realm.init(this)
         realm = Realm.getDefaultInstance()
 
-        // Query all trips from Realm
         tripList = realm.where(RealmTrips::class.java).findAll()
-
         tripAdapter = RVAdapter(tripList, this)
 
         binding.recyclerviewTrips.layoutManager = LinearLayoutManager(this)
@@ -98,8 +100,8 @@ class MainActivity : AppCompatActivity(), RVAdapter.OnTripItemClickListener {
             putExtra("duration", trip.duration)
             putExtra("date", trip.date)
             putExtra("stations", trip.stations)
+            putExtra("title", "Edit Trip")
         }
-        intent.putExtra("title", "Edit Trip")
         addTripResultLauncher.launch(intent)
     }
 
@@ -116,6 +118,7 @@ class MainActivity : AppCompatActivity(), RVAdapter.OnTripItemClickListener {
                     tripList.deleteFromRealm(position)
                 }
                 dialog.dismiss()
+                tripAdapter.notifyItemRemoved(position)
             }
             .setNegativeButton("No") { dialog, _ ->
                 dialog.dismiss()
