@@ -10,34 +10,46 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.recyclerviewapp.databinding.ActivityCreateTripBinding
+import com.example.recyclerviewapp.realmdb.RealmTrips
+import io.realm.Realm
 import java.util.Calendar
+import java.util.UUID
 
 class CreateTripActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCreateTripBinding
     private var selectedYear = -1
     private var selectedMonth = -1
     private var selectedDay = -1
-    var currpos =0
+    private lateinit var realm: Realm
+    private var editid:String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCreateTripBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        try {
+            Realm.init(this)
+            realm = Realm.getDefaultInstance()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Error initializing Realm", Toast.LENGTH_SHORT).show()
+        }
 
-        intent?.let {
-            val testtb = it.getStringExtra("title")
-            if (testtb != null) {
-                binding.tbCreateTrip.setTitle(testtb)
+        editid = intent.getStringExtra("tripId")
+        if (editid != null) {
+            // Load trip details and populate fields
+            val trip = realm.where(RealmTrips::class.java).equalTo("id", editid).findFirst()
+            trip?.let {
+                binding.etFrom.setText(it.from)
+                binding.etTo.setText(it.to)
+                binding.etdistance.setText(it.distance)
+                binding.etTime.setText(it.duration)
+                binding.etDate.setText(it.date)
+                binding.etStations.setText(it.stations)
             }
-
-            binding.etFrom.setText(it.getStringExtra("from"))
-            binding.etTo.setText(it.getStringExtra("to"))
-            binding.etdistance.setText(it.getStringExtra("distance"))
-            binding.etTime.setText(it.getStringExtra("duration"))
-            binding.etDate.setText(it.getStringExtra("date"))
-            binding.etStations.setText(it.getStringExtra("stations"))
         }
 
         binding.btnsubmit.setOnClickListener {
@@ -90,19 +102,62 @@ class CreateTripActivity : AppCompatActivity() {
                 binding.etStations.requestFocus()
                 showKeyboard(binding.etStations)
             } else {
-                val resultIntent = Intent().apply {
-                    putExtra("from", fromLocation)
-                    putExtra("to", toLocation)
-                    putExtra("distance", distanceTravel)
-                    putExtra("duration", timeTravel)
-                    putExtra("date", dateTravel)
-                    putExtra("stations", stationTravel)
-                    putExtra("status", status)
-                }
-                setResult(RESULT_OK, resultIntent)
-                finish()
+                if (editid != null) {
+                updateTrip()
+            } else {
+                saveTrip()
+            }
             }
         }
+    }
+    private fun saveTrip() {
+        val fromLocation = binding.etFrom.text.toString()
+        val toLocation = binding.etTo.text.toString()
+        val distanceTravel = binding.etdistance.text.toString()
+        val timeTravel = binding.etTime.text.toString()
+        val dateTravel = binding.etDate.text.toString()
+        val stationTravel = binding.etStations.text.toString()
+        val status = intent.getStringExtra("status") ?: TripStatus.SUCCESSFUL.name
+
+        realm.executeTransaction { realm ->
+            val trip = realm.createObject(
+            RealmTrips::class.java, UUID.randomUUID().toString())
+            trip.from = fromLocation
+            trip.to = toLocation
+            trip.distance = distanceTravel
+            trip.duration = timeTravel
+            trip.date = dateTravel
+            trip.stations = stationTravel
+            trip.status = status
+        }
+
+        setResult(RESULT_OK)
+        finish()
+    }
+    private fun updateTrip() {
+        val fromLocation = binding.etFrom.text.toString()
+        val toLocation = binding.etTo.text.toString()
+        val distanceTravel = binding.etdistance.text.toString()
+        val timeTravel = binding.etTime.text.toString()
+        val dateTravel = binding.etDate.text.toString()
+        val stationTravel = binding.etStations.text.toString()
+        val status = intent.getStringExtra("status") ?: TripStatus.SUCCESSFUL.name
+
+        realm.executeTransaction { realm ->
+            val trip = realm.where(RealmTrips::class.java).equalTo("id", editid).findFirst()
+            trip?.let {
+                it.from = fromLocation
+                it.to = toLocation
+                it.distance = distanceTravel
+                it.duration = timeTravel
+                it.date = dateTravel
+                it.stations = stationTravel
+                it.status = status
+            }
+        }
+
+        setResult(RESULT_OK)
+        finish()
     }
 
     fun showDatePickerDialog(view: View) {
@@ -170,5 +225,12 @@ class CreateTripActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::realm.isInitialized) {
+            realm.close()
+        }
     }
 }

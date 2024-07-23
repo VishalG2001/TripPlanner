@@ -10,7 +10,7 @@ import com.example.recyclerviewapp.realmdb.RealmTrips
 import io.realm.RealmResults
 
 class RVAdapter(
-    private val itemList: RealmResults<RealmTrips>,
+    private var itemList: RealmResults<RealmTrips>,
     private val listener: OnTripItemClickListener
 ) : RecyclerView.Adapter<RVAdapter.ItemViewHolder>() {
 
@@ -58,9 +58,11 @@ class RVAdapter(
             TripStatus.SUCCESSFUL.name -> holder.binding.statustv.setTextColor(
                 ContextCompat.getColor(holder.binding.root.context, R.color.status_successful)
             )
+
             TripStatus.DELAYED.name -> holder.binding.statustv.setTextColor(
                 ContextCompat.getColor(holder.binding.root.context, R.color.status_delayed)
             )
+
             TripStatus.CANCELLED.name -> holder.binding.statustv.setTextColor(
                 ContextCompat.getColor(holder.binding.root.context, R.color.status_cancelled)
             )
@@ -69,8 +71,17 @@ class RVAdapter(
 
     override fun getItemCount() = itemList.size
 
+    fun updateData(newItemList: RealmResults<RealmTrips>) {
+        itemList = newItemList
+        notifyDataSetChanged()
+    }
+
+    fun getItemList() = itemList
+
+
     interface OnTripItemClickListener {
         fun onItemClick(trip: RealmTrips, position: Int)
         fun onItemLongClick(trip: RealmTrips, position: Int)
     }
 }
+
